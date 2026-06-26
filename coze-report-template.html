@@ -855,29 +855,18 @@ body {
 // ============================================================
 async function getReportDataFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  
-  // 方案 A：直接读取 data 参数（老方式，兼容本地测试）
-  const data = params.get('data');
-  if (data) {
+
+  // 从阿里云 OSS 读取报告数据
+  const ossUrl = params.get('oss');
+  if (ossUrl) {
     try {
-      return JSON.parse(decodeURIComponent(data));
+      const resp = await fetch(decodeURIComponent(ossUrl));
+      return await resp.json();
     } catch (e) {
-      console.error('Failed to parse URL data:', e);
+      console.error('Failed to fetch data from OSS:', e);
     }
   }
-  
-  // 方案 B：从 jsonbin.io 读取（新方式）
-  const id = params.get('id');
-  if (id) {
-    try {
-      const resp = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`);
-      const result = await resp.json();
-      return result.record;
-    } catch (e) {
-      console.error('Failed to fetch data from jsonbin:', e);
-    }
-  }
-  
+
   return null;
 }
 
