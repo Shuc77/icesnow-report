@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冰山识才 — AI 智能求职匹配报告</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+/* ============================================================
+   设计系统 — 对齐 AI-Hiring Candidate 前端视觉规范
+   ============================================================ */
+:root {
+  --primary: #2D5BFF;
+  --primary-light: #5B8DEF;
+  --primary-bg: #F0F5FF;
+  --text-primary: #1D2129;
+  --text-secondary: #4E5969;
+  --text-muted: #86909C;
+  --bg-page: #f5f7fa;
+  --bg-card: #ffffff;
+  --border: #E5E6EB;
+  --shadow-card: 0 2px 18px rgba(24,25,28,0.03);
+  --shadow-hover: 0 8px 32px rgba(10,101,204,0.08);
+  --radius: 16px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+  /* 冰山模块配色 */
+  --color-K: #2D5BFF;
+  --color-S: #00BCD4;
+  --color-R: #7C4DFF;
+  --color-C: #FF7043;
+  --color-T: #66BB6A;
+  --color-M: #FFA726;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+               'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 40px 80px;
+}
+
+/* ---- 顶部导航栏 ---- */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.nav-brand svg { width: 28px; height: 28px; }
+.nav-meta { font-size: 13px; color: var(--text-muted); }
+
+/* ---- Hero 区域 ---- */
+.hero {
+  background: linear-gradient(135deg, #042852 0%, #0A65CC 100%);
+  border-radius: var(--radius);
+  padding: 48px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(4,40,82,0.2);
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  right: -60px;
+  top: -60px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-info { flex: 1; }
+.hero-name { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+.hero-meta { display: flex; gap: 24px; font-size: 14px; opacity: 0.85; }
+.hero-meta-item { display: flex; align-items: center; gap: 6px; }
+.hero-score-ring {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 5px solid rgba(255,255,255,0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.hero-score-ring .score-value {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+}
+.hero-score-ring .score-label {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+/* ---- 区块标题 ---- */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  margin-top: 40px;
+}
+.section-title .icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.section-title .titles { display: flex; flex-direction: column; }
+.section-title .title-zh { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+.section-title .title-en {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+}
+
+/* ---- 卡片 ---- */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 28px;
+  transition: box-shadow 0.3s;
+}
+.card:hover { box-shadow: var(--shadow-hover); }
+
+/* ---- 网格布局 ---- */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+
+/* ---- 图表容器 ---- */
+.chart-box { width: 100%; height: 320px; }
+.chart-box-sm { width: 100%; height: 260px; }
+.chart-box-lg { width: 100%; height: 400px; }
+
+/* ---- 冰山导航图 ---- */
+.iceberg-nav {
+  background: #001a33;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 580/560;
+}
+.iceberg-nav img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.iceberg-pin {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+  z-index: 2;
+}
+.iceberg-pin .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.8);
+}
+.iceberg-pin .line {
+  width: 60px; height: 0;
+  border-top: 1px dashed rgba(255,255,255,0.4);
+}
+.iceberg-pin .ring {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: #1565C0;
+}
+.iceberg-pin .label {
+  font-size: 13px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  white-space: nowrap;
+}
+.iceberg-pin.active .ring {
+  background: #2196F3;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.35);
+}
+.iceberg-pin.active .label { font-weight: 700; }
+
+/* ---- 霍兰德六边形 ---- */
+.hexagon {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #fff;
+}
+.hex-lg { width: 80px; height: 90px; font-size: 28px; }
+.hex-md { width: 54px; height: 62px; font-size: 18px; }
+.hex-sm { width: 40px; height: 46px; font-size: 14px; }
+
+/* ---- 进度条（MBTI 双向） ---- */
+.bar-bidirectional {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+.bar-bidirectional .label-left,
+.bar-bidirectional .label-right {
+  width: 32px;
+  font-weight: 700;
+  text-align: center;
+}
+.bar-bidirectional .track {
+  flex: 1;
+  height: 10px;
+  background: #F2F3F5;
+  border-radius: 5px;
+  display: flex;
+  overflow: hidden;
+}
+.bar-bidirectional .fill-left {
+  height: 100%;
+  border-radius: 5px 0 0 5px;
+  transition: width 0.6s ease;
+}
+.bar-bidirectional .fill-right {
+  height: 100%;
+  border-radius: 0 5px 5px 0;
+  margin-left: auto;
+  transition: width 0.6s ease;
+}
+.bar-bidirectional .pct { width: 40px; font-size: 12px; color: var(--text-muted); }
+
+/* ---- 匹配维度条 ---- */
+.match-bar {
+  margin-bottom: 16px;
+}
+.match-bar .bar-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.match-bar .bar-track {
+  height: 8px;
+  background: #F2F3F5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.match-bar .bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s ease;
+}
+
+/* ---- 面试题卡片 ---- */
+.question-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  margin-bottom: 16px;
+  transition: border-color 0.3s;
+}
+.question-card:hover { border-color: var(--primary); }
+.question-card .q-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.question-card .q-num {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.question-card .q-diff {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.q-diff.基础 { background: #E8F5E9; color: #2E7D32; }
+.q-diff.进阶 { background: #FFF3E0; color: #E65100; }
+.q-diff.专家 { background: #FFEBEE; color: #C62828; }
+.question-card .q-text { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+.question-card .q-focus { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+.question-card .q-points { font-size: 13px; color: var(--text-secondary); }
+.question-card .q-points li { margin-bottom: 4px; margin-left: 16px; }
+
+/* ---- 标签 ---- */
+.tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0 4px 6px 0;
+}
+.tag-blue { background: #EBF0FF; color: #2D5BFF; }
+.tag-orange { background: #FFF2E8; color: #FA8C16; }
+.tag-red { background: #FFF0F0; color: #E74C3C; }
+.tag-green { background: #E8F8F0; color: #00A870; }
+.tag-purple { background: #F3ECFF; color: #7C4DFF; }
+.tag-gray { background: #F7F8FA; color: var(--text-muted); }
+
+/* ---- 建议时间线 ---- */
+.timeline {
+  position: relative;
+  padding-left: 28px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--border);
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 24px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+.timeline-item .time-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+/* ---- 摘要文本块 ---- */
+.summary-block {
+  border-left: 3px solid var(--primary);
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  background: #FAFBFC;
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  margin-top: 16px;
+}
+
+/* ---- 优势/待提升卡片 ---- */
+.eval-card {
+  padding: 20px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+.eval-card.strength { background: var(--primary-bg); }
+.eval-card.improve { background: #FFF7E6; }
+.eval-card h4 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.eval-card h4 .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.eval-card.strength h4 .dot { background: var(--primary); }
+.eval-card.improve h4 .dot { background: #FA8C16; }
+.eval-card ul { list-style: none; }
+.eval-card li {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  padding-left: 16px;
+  position: relative;
+}
+.eval-card li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.eval-card.strength li::before { background: #5B8DEF; }
+.eval-card.improve li::before { background: #FA8C16; }
+
+/* ---- 底部 ---- */
+.footer {
+  text-align: center;
+  padding: 40px 0 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---- 响应式 ---- */
+@media (max-width: 900px) {
+  .page-container { padding: 16px; }
+  .hero { flex-direction: column; gap: 24px; padding: 32px; text-align: center; }
+  .hero-meta { justify-content: center; flex-wrap: wrap; }
+  .grid-2, .grid-3, .grid-2-1 { grid-template-columns: 1fr; }
+  .iceberg-layout { flex-direction: column; }
+  .iceberg-nav { max-width: 100%; }
+}
+
+/* ---- 冰山区域左右布局 ---- */
+.iceberg-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.iceberg-left {
+  width: 400px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 80px;
+}
+.iceberg-right {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- 自我认知标签 ---- */
+.concept-tags { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.concept-tag {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.concept-tag.active { background: #FFF2ED; color: #FF7043; }
+.concept-tag.inactive { background: #F7F8FA; color: var(--text-muted); }
+
+/* ---- 评估对 ---- */
+.eval-pair {
+  padding: 16px;
+  background: #FAFBFC;
+  border-radius: var(--radius-xs);
+  margin-bottom: 12px;
+  border: 1px solid #F2F3F5;
+}
+.eval-pair .pair-num {
+  display: inline-block;
+  width: 20px; height: 20px;
+  background: #F2F3F5;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-right: 8px;
+}
+.eval-pair .cognition { font-size: 14px; margin-bottom: 8px; }
+.eval-pair .evidence { font-size: 13px; color: var(--text-muted); }
+
+/* ---- 模块切换 ---- */
+.iceberg-right > .card { display: none; }
+.iceberg-right > .card.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.iceberg-pin { cursor: pointer; transition: all 0.2s; }
+.iceberg-pin:hover .ring { box-shadow: 0 0 0 3px rgba(33,150,243,0.3); }
+.iceberg-pin .ring { transition: all 0.2s; }
+.iceberg-pin.active .ring {
+  background: #2196F3 !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.35);
+}
+.iceberg-pin.active .dot { background: #fff; }
+.iceberg-pin.active .label { font-weight: 700; }
+
+/* ---- 模块导航条（冰山下方） ---- */
+.module-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 16px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: var(--shadow-card);
+}
+.module-tab {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+}
+.module-tab:hover { background: #F7F8FA; color: var(--text-secondary); }
+.module-tab.active { color: #fff; }
+.module-tab.active[data-key="K"] { background: var(--color-K); }
+.module-tab.active[data-key="S"] { background: var(--color-S); }
+.module-tab.active[data-key="R"] { background: var(--color-R); }
+.module-tab.active[data-key="C"] { background: var(--color-C); }
+.module-tab.active[data-key="T"] { background: var(--color-T); }
+.module-tab.active[data-key="M"] { background: var(--color-M); }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     导航栏
+     ============================================================ -->
+<nav class="nav-bar">
+  <div class="nav-brand">
+    <svg viewBox="0 0 28 28" fill="none">
+      <path d="M14 2L26 8v12l-12 6L2 20V8l12-6z" fill="#2D5BFF" opacity="0.15"/>
+      <path d="M14 4L24 9v10l-10 5L4 19V9l10-5z" fill="#2D5BFF" opacity="0.3"/>
+      <path d="M14 6L22 10v8l-8 4L6 18v-8l8-4z" fill="#2D5BFF"/>
+      <path d="M14 10l-4 2v4l4 2 4-2v-4l-4-2z" fill="#fff"/>
+    </svg>
+    冰山识才
+  </div>
+  <div class="nav-meta">AI 智能求职匹配报告 | 生成时间：<span id="report-time"></span></div>
+</nav>
+
+<div class="page-container">
+
+<!-- ============================================================
+     Hero：候选人概况 + 综合评分
+     ============================================================ -->
+<div class="hero" id="hero-section">
+  <div class="hero-info">
+    <div class="hero-name" id="hero-name">--</div>
+    <div class="hero-meta" id="hero-meta"></div>
+  </div>
+  <div class="hero-score-ring" id="hero-ring">
+    <div class="score-value" id="hero-score">--</div>
+    <div class="score-label">综合匹配分</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     冰山模型区：左侧导航图 + 右侧六个模块
+     ============================================================ -->
+<div class="section-title">
+  <div class="icon-badge" style="background: linear-gradient(135deg, #042852, #0A65CC);">冰</div>
+  <div class="titles">
+    <span class="title-zh">冰山胜任力模型</span>
+    <span class="title-en">ICEBERG COMPETENCY MODEL</span>
+  </div>
+</div>
+
+<div class="iceberg-layout">
+  <!-- 左侧冰山导航图 -->
+  <div class="iceberg-left">
+    <div class="iceberg-nav">
+      <!-- 冰山 SVG 替代 PNG（自包含，无需外部图片） -->
+      <svg viewBox="0 0 580 560" style="position:absolute;inset:0;width:100%;height:100%;">
+        <defs>
+          <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#DBEAFE"/>
+            <stop offset="100%" stop-color="#BFDBFE"/>
+          </linearGradient>
+          <linearGradient id="ice-top" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E0EEFF"/>
+            <stop offset="100%" stop-color="#93B8F7"/>
+          </linearGradient>
+          <linearGradient id="ice-bottom" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#7BA3E0"/>
+            <stop offset="100%" stop-color="#3B6CB5"/>
+          </linearGradient>
+        </defs>
+        <!-- 水面 -->
+        <rect x="0" y="0" width="580" height="560" fill="url(#water)" opacity="0.15"/>
+        <line x1="0" y1="200" x2="580" y2="200" stroke="#60A5FA" stroke-width="1.5" opacity="0.4"/>
+        <!-- 水面上的冰山 -->
+        <polygon points="290,40 380,200 200,200" fill="url(#ice-top)" opacity="0.9"/>
+        <!-- 水面下的冰山 -->
+        <polygon points="200,200 380,200 420,340 370,460 290,500 210,460 160,340" fill="url(#ice-bottom)" opacity="0.7"/>
+        <!-- 水波纹 -->
+        <path d="M0,200 Q50,195 100,200 T200,200 T300,200 T400,200 T500,200 T580,200"
+              fill="none" stroke="#60A5FA" stroke-width="1" opacity="0.3"/>
+        <!-- 模块标注文字 -->
+        <text x="290" y="100" text-anchor="middle" fill="#fff" font-size="18" font-weight="800" opacity="0.9">冰山模型</text>
+        <text x="290" y="125" text-anchor="middle" fill="#fff" font-size="11" opacity="0.6">ICEBERG MODEL</text>
+      </svg>
+      <!-- 导航钉（定位在 SVG 冰山上） -->
+      <div class="iceberg-pin active" data-key="K" onclick="switchModule('K')" style="left:52%;top:18%"><span class="dot"></span><span class="line"></span><span class="ring">K</span><span class="label">知识</span></div>
+      <div class="iceberg-pin" data-key="S" onclick="switchModule('S')" style="left:55%;top:28%"><span class="dot"></span><span class="line"></span><span class="ring">S</span><span class="label">技能</span></div>
+      <div class="iceberg-pin" data-key="R" onclick="switchModule('R')" style="left:58%;top:44%"><span class="dot"></span><span class="line"></span><span class="ring">R</span><span class="label">社会角色</span></div>
+      <div class="iceberg-pin" data-key="C" onclick="switchModule('C')" style="left:58%;top:56%"><span class="dot"></span><span class="line"></span><span class="ring">C</span><span class="label">自我概念</span></div>
+      <div class="iceberg-pin" data-key="T" onclick="switchModule('T')" style="left:55%;top:68%"><span class="dot"></span><span class="line"></span><span class="ring">T</span><span class="label">特质性格</span></div>
+      <div class="iceberg-pin" data-key="M" onclick="switchModule('M')" style="left:52%;top:80%"><span class="dot"></span><span class="line"></span><span class="ring">M</span><span class="label">动机</span></div>
+    </div>
+    <!-- 模块切换标签条 -->
+    <div class="module-tabs">
+      <button class="module-tab active" data-key="K" onclick="switchModule('K')">K 知识</button>
+      <button class="module-tab" data-key="S" onclick="switchModule('S')">S 技能</button>
+      <button class="module-tab" data-key="R" onclick="switchModule('R')">R 社会角色</button>
+      <button class="module-tab" data-key="C" onclick="switchModule('C')">C 自我概念</button>
+      <button class="module-tab" data-key="T" onclick="switchModule('T')">T 性格</button>
+      <button class="module-tab" data-key="M" onclick="switchModule('M')">M 动机</button>
+    </div>
+  </div>
+
+  <!-- 右侧六个模块 -->
+  <div class="iceberg-right">
+
+    <!-- K：知识维度 -->
+    <div class="card active" style="margin-bottom:20px;" id="section-K">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div class="icon-badge" style="background:linear-gradient(135deg,#2D5BFF,#5B8DEF);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;">K</div>
+        <div><div style="font-size:16px;font-weight:700;">知识维度</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;">KNOWLEDGE</div></div>
+      </div>
+      <div class="chart-box-sm" id="chart-knowledge"></div>
+      <div class="summary-block" id="knowledge-summary"></div>
+    </div>
+
+    <!-- S：技能雷达 -->
+    <div class="card" style="margin-bottom:20px;" id="section-S">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div class="icon-badge" style="background:linear-gradient(135deg,#00BCD4,#4DD0E1);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;">S</div>
+        <div><div style="font-size:16px;font-weight:700;">技能雷达</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;">SKILLS</div></div>
+      </div>
+      <div class="chart-box" id="chart-skills"></div>
+    </div>
+
+    <!-- R：社会角色（霍兰德） -->
+    <div class="card" style="margin-bottom:20px;" id="section-R">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div class="icon-badge" style="background:linear-gradient(135deg,#7C4DFF,#B388FF);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;">R</div>
+        <div><div style="font-size:16px;font-weight:700;">社会角色</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;">HOLLAND RIASEC</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:24px;margin-bottom:16px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">霍兰德代码</div>
+          <div style="font-size:36px;font-weight:800;letter-spacing:4px;color:var(--color-R);" id="holland-code">--</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <div class="hexagon hex-lg" style="background:linear-gradient(135deg,#7C4DFF,#B388FF);" id="hex-1">-</div>
+          <div class="hexagon hex-md" style="background:rgba(124,77,255,0.2);color:#7C4DFF;" id="hex-2">-</div>
+          <div class="hexagon hex-md" style="background:rgba(124,77,255,0.1);color:#7C4DFF;" id="hex-3">-</div>
+        </div>
+        <div>
+          <div style="font-size:13px;color:var(--text-secondary);" id="holland-desc"></div>
+        </div>
+      </div>
+      <div class="chart-box-sm" id="chart-holland"></div>
+    </div>
+
+    <!-- C：自我概念 -->
+    <div class="card" style="margin-bottom:20px;" id="section-C">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div class="icon-badge" style="background:linear-gradient(135deg,#FF7043,#FFAB91);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;">C</div>
+        <div><div style="font-size:16px;font-weight:700;">自我概念</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;">SELF CONCEPT</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+        <div class="hexagon hex-lg" style="background:linear-gradient(135deg,#FF7043,#FFAB91);font-size:20px;" id="concept-badge">-</div>
+        <div>
+          <div style="font-size:20px;font-weight:700;" id="concept-role"></div>
+          <div style="font-size:14px;color:var(--text-secondary);margin-top:4px;" id="concept-title"></div>
+        </div>
+      </div>
+      <div class="concept-tags" id="concept-tags"></div>
+      <div id="concept-evals"></div>
+    </div>
+
+    <!-- T：特质性格（MBTI + DISC） -->
+    <div class="card" style="margin-bottom:20px;" id="section-T">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div class="icon-badge" style="background:linear-gradient(135deg,#66BB6A,#A5D6A7);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;">T</div>
+        <div><div style="font-size:16px;font-weight:700;">特质性格</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;">PERSONALITY · MBTI & DISC</div></div>
+      </div>
+      <!-- MBTI 区域 -->
+      <div style="margin-bottom:24px;">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+          <div style="font-size:36px;font-weight:800;color:#7C4DFF;" id="mbti-type">--</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;color:var(--text-secondary);" id="mbti-desc"></div>
+          </div>
+        </div>
+        <div id="mbti-bars"></div>
+      </div>
+      <!-- DISC 区域 -->
+      <div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div style="font-size:24px;font-weight:800;color:var(--primary);" id="disc-type">--</div>
+          <div class="tag tag-blue" id="disc-label"></div>
+        </div>
+        <div class="chart-box-sm" id="chart-disc" style="height:200px;"></div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-top:8px;" id="disc-traits"></div>
+        <div style="margin-top:8px;" id="disc-jobs"></div>
+      </div>
+    </div>
+
+    <!-- M：动机 -->
+    <div class="card" style="margin-bottom:20px;" id="section-M">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div class="icon-badge" style="background:linear-gradient(135deg,#FFA726,#FFCC80);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;">M</div>
+        <div><div style="font-size:16px;font-weight:700;">职业动机</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;">MOTIVATION</div></div>
+      </div>
+      <div class="chart-box-sm" id="chart-motivation"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     匹配度评估
+     ============================================================ -->
+<div class="section-title">
+  <div class="icon-badge" style="background:linear-gradient(135deg,#042852,#0A65CC);">匹</div>
+  <div class="titles">
+    <span class="title-zh">岗位匹配评估</span>
+    <span class="title-en">MATCHING ASSESSMENT</span>
+  </div>
+</div>
+
+<div class="grid-2-1">
+  <div class="card">
+    <div id="match-bars"></div>
+    <div class="summary-block" id="match-reason" style="margin-top:20px;"></div>
+    <div style="margin-top:16px;" id="match-missing"></div>
+  </div>
+  <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <div class="chart-box-sm" id="chart-gauge" style="height:220px;"></div>
+    <div style="text-align:center;margin-top:8px;">
+      <div style="font-size:13px;color:var(--text-muted);">综合匹配分</div>
+      <div style="font-size:36px;font-weight:800;color:var(--primary);" id="total-score">--</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     面试准备
+     ============================================================ -->
+<div class="section-title">
+  <div class="icon-badge" style="background:linear-gradient(135deg,#042852,#0A65CC);">面</div>
+  <div class="titles">
+    <span class="title-zh">面试准备</span>
+    <span class="title-en">INTERVIEW PREPARATION</span>
+  </div>
+</div>
+
+<div id="interview-section"></div>
+
+<!-- ============================================================
+     职业发展建议
+     ============================================================ -->
+<div class="section-title">
+  <div class="icon-badge" style="background:linear-gradient(135deg,#042852,#0A65CC);">发</div>
+  <div class="titles">
+    <span class="title-zh">职业发展建议</span>
+    <span class="title-en">CAREER DEVELOPMENT</span>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div>
+    <div class="eval-card strength">
+      <h4><span class="dot"></span>核心优势</h4>
+      <ul id="strengths-list"></ul>
+    </div>
+  </div>
+  <div>
+    <div class="eval-card improve">
+      <h4><span class="dot"></span>待提升领域</h4>
+      <ul id="improve-list"></ul>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+  <div style="font-size:16px;font-weight:700;margin-bottom:16px;">行动路线图</div>
+  <div class="timeline" id="roadmap"></div>
+</div>
+
+<div class="footer">
+  <p>冰山识才 — AI 多智能体求职匹配系统 | 基于麦克利兰冰山模型 + 霍兰德 RIASEC + MBTI/DISC</p>
+  <p style="margin-top:4px;">Powered by AI-Hiring Engine</p>
+</div>
+
+</div><!-- .page-container -->
+
+<!-- ============================================================
+     数据与渲染逻辑
+     ============================================================ -->
+<script>
+// ============================================================
+// 数据加载：优先从 URL ?data= 参数读取，否则使用示例数据
+// ============================================================
+async function getReportDataFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  
+  // 方案 A：直接读取 data 参数（老方式，兼容本地测试）
+  const data = params.get('data');
+  if (data) {
+    try {
+      return JSON.parse(decodeURIComponent(data));
+    } catch (e) {
+      console.error('Failed to parse URL data:', e);
+    }
+  }
+  
+  // 方案 B：从 jsonbin.io 读取（新方式）
+  const id = params.get('id');
+  if (id) {
+    try {
+      const resp = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`);
+      const result = await resp.json();
+      return result.record;
+    } catch (e) {
+      console.error('Failed to fetch data from jsonbin:', e);
+    }
+  }
+  
+  return null;
+}
+
+// ============================================================
+// 示例数据（当 URL 没有 data 参数时使用）
+// ============================================================
+const EXAMPLE_DATA = {
+  basic: {
+    name: "张伟",
+    target_position: "高级 Java 后端开发工程师",
+    years: 3,
+    education: "本科",
+    city: "北京"
+  },
+
+  // A3 冰山模型输出
+  iceberg: {
+    knowledge: {
+      dimensions: [
+        { name: "系统架构", score: 8 },
+        { name: "编程语言", score: 7 },
+        { name: "数据库", score: 7 },
+        { name: "算法基础", score: 5 },
+        { name: "网络协议", score: 6 },
+        { name: "工程规范", score: 7 }
+      ],
+      summary: "候选人具备扎实的后端技术知识体系，系统架构和编程语言是核心优势，算法基础有提升空间。"
+    },
+    skills: {
+      skills: [
+        { name: "Java", candidate_score: 8, standard_score: 9 },
+        { name: "Spring Boot", candidate_score: 8, standard_score: 8 },
+        { name: "MySQL", candidate_score: 7, standard_score: 8 },
+        { name: "Redis", candidate_score: 6, standard_score: 7 },
+        { name: "Docker", candidate_score: 4, standard_score: 7 },
+        { name: "Kubernetes", candidate_score: 2, standard_score: 6 },
+        { name: "微服务", candidate_score: 7, standard_score: 8 },
+        { name: "消息队列", candidate_score: 6, standard_score: 6 }
+      ]
+    },
+    social_role: {
+      holland: { R: 65, I: 80, A: 30, S: 40, E: 55, C: 70 },
+      code: "ICE",
+      dominant_type: "研究型",
+      dominant_desc: "喜欢分析问题、探索技术原理，具备独立思考和深入研究的能力。"
+    },
+    self_concept: {
+      role: "问题解决者",
+      title: "高并发场景下的 Java 技术攻坚手",
+      evaluations: [
+        {
+          cognition: "具备从单体到微服务架构的完整迁移经验，能独立承担核心模块的技术方案设计和落地。",
+          evidence: "主导订单系统微服务拆分，将系统可用性从 99.5% 提升至 99.95%。"
+        },
+        {
+          cognition: "注重性能优化，善于从数据库和缓存层面找到系统瓶颈并解决。",
+          evidence: "优化 20+ 条 MySQL 慢查询，平均响应时间从 800ms 降至 120ms。"
+        },
+        {
+          cognition: "有高并发场景的实战经验，能设计出支撑大规模流量的技术方案。",
+          evidence: "独立设计秒杀系统，通过 Redis 预扣库存 + 异步下单支撑 10 万 QPS。"
+        }
+      ],
+      tags: ["技术攻坚", "务实", "自驱"]
+    },
+    personality: {
+      mbti: {
+        type: "ESTJ",
+        E: 55, I: 45, S: 65, N: 35, T: 70, F: 30, J: 75, P: 25,
+        interpretation: "ESTJ 型人格，注重效率和规范，擅长将复杂问题结构化。适合需要系统性思维和执行力的技术架构岗位，在团队中倾向于主导技术方案的制定和推进。"
+      },
+      disc: {
+        D: 70, I: 45, S: 55, C: 80,
+        dominant: "C型",
+        dominant_label: "谨慎型/思考者",
+        traits: "注重细节和质量，做事严谨有条理。在技术决策上倾向于充分调研后再行动，适合需要精确性和专业深度的技术岗位。",
+        suitable_jobs: ["后端架构师", "技术经理", "数据库工程师", "平台开发工程师"]
+      }
+    },
+    motivation: {
+      motivations: [
+        { name: "成就", score: 8 },
+        { name: "探索", score: 7 },
+        { name: "利益", score: 6 },
+        { name: "发展前景", score: 8 },
+        { name: "权力", score: 5 },
+        { name: "团队环境", score: 7 }
+      ]
+    }
+  },
+
+  // A4 匹配评估输出
+  match: {
+    skill_score: 72,
+    experience_score: 80,
+    salary_score: 85,
+    career_fit_score: 75,
+    total_score: 76,
+    reason: "你的 Java 基础和项目经验是明显优势，和岗位要求很对口。薪资方面也有不错的重叠空间。不过云原生这块是短板，Docker 和 Kubernetes 都需要补一补。",
+    missing_skills: ["Kubernetes", "Elasticsearch"],
+    risk_factors: ["云原生经验不足", "无大厂背景"]
+  },
+
+  // A4 面试题输出
+  interview: {
+    questions: [
+      {
+        question: "请解释 Spring Boot 自动配置的原理，以及 @EnableAutoConfiguration 注解的工作机制。",
+        category: "技术",
+        focus: "框架核心概念理解",
+        difficulty: "基础",
+        suggested_answer_points: [
+          "通过 spring.factories 加载自动配置类",
+          "@Conditional 系列条件注解控制是否生效",
+          "结合 starter 机制实现开箱即用"
+        ]
+      },
+      {
+        question: "你在电商项目中是如何设计秒杀模块的？遇到缓存击穿问题时是怎么解决的？",
+        category: "项目",
+        focus: "高并发场景设计能力",
+        difficulty: "进阶",
+        suggested_answer_points: [
+          "Redis 预扣库存 + 异步下单的架构设计",
+          "互斥锁或逻辑过期解决缓存击穿",
+          "限流降级保护后端服务"
+        ]
+      },
+      {
+        question: "如果线上 Redis 集群出现大面积 key 过期导致数据库压力飙升，你会怎么排查和处理？",
+        category: "场景",
+        focus: "故障排查和应急处理能力",
+        difficulty: "进阶",
+        suggested_answer_points: [
+          "识别缓存雪崩现象，监控数据库连接数",
+          "紧急限流 + 降级，保护数据库",
+          "设置随机过期时间 + 热点 key 预加载作为长期方案"
+        ]
+      }
+    ],
+    overall_suggestion: "建议重点准备项目中的技术难点和架构决策，特别是秒杀系统和微服务迁移两个项目的细节。"
+  },
+
+  // A5 职业建议输出
+  advice: {
+    strengths: [
+      "Java 技术栈扎实，Spring Boot + MySQL + Redis 是当前市场高需求组合",
+      "有高并发电商实战经验，秒杀系统设计含金量高",
+      "职业动机以成就和发展为导向，自驱力强"
+    ],
+    improvements: [
+      "云原生技术（Docker/Kubernetes）是当前行业标配，差距较大需要补强",
+      "算法基础有提升空间，对技术面试和日常开发都有帮助"
+    ],
+    roadmap: [
+      { period: "1-2周", priority: "高", action: "针对 Docker 基础概念准备面试答案，整理秒杀项目的技术亮点和数据指标" },
+      { period: "1-3个月", priority: "中", action: "系统学习 Docker + Kubernetes，完成一个 K8s 部署实战项目，补充 Elasticsearch 基础" },
+      { period: "3-6个月", priority: "中", action: "向云原生架构师方向发展，学习 Istio 服务网格，补齐分布式系统全链路观测能力" }
+    ]
+  }
+};
+
+// ============================================================
+// 模块切换 + 延迟图表初始化
+// ============================================================
+const chartMap = {};       // key -> echarts instance
+const chartInited = {};    // key -> bool, 是否已初始化
+let currentModule = 'K';
+
+// 各模块的图表初始化函数（按需调用）
+const chartInitFns = {};
+
+function switchModule(key) {
+  if (key === currentModule) return;
+  currentModule = key;
+
+  // 切换右侧模块显示
+  document.querySelectorAll('.iceberg-right > .card').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById('section-' + key);
+  if (target) target.classList.add('active');
+
+  // 更新导航钉高亮
+  document.querySelectorAll('.iceberg-pin').forEach(pin => {
+    pin.classList.toggle('active', pin.dataset.key === key);
+  });
+
+  // 更新底部标签条高亮
+  document.querySelectorAll('.module-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.key === key);
+  });
+
+  // 延迟初始化图表（display:none 时 ECharts 拿不到尺寸，必须在可见后初始化）
+  setTimeout(() => {
+    if (!chartInited[key] && chartInitFns[key]) {
+      chartInitFns[key]();
+      chartInited[key] = true;
+    } else if (chartMap[key]) {
+      chartMap[key].resize();
+    }
+  }, 60);
+}
+
+// ============================================================
+// 渲染引擎
+// ============================================================
+(async function() {
+  const urlReportData = await getReportDataFromUrl();
+  const REPORT_DATA = urlReportData || EXAMPLE_DATA;
+  const D = REPORT_DATA;
+  const charts = [];
+
+  // 工具函数
+  function $(id) { return document.getElementById(id); }
+  function scoreColor(v) { return v >= 80 ? '#00A870' : v >= 60 ? '#FAAD14' : '#E74C3C'; }
+
+  // 时间
+  $('report-time').textContent = new Date().toLocaleString('zh-CN');
+
+  // ---- Hero ----
+  $('hero-name').textContent = D.basic.name;
+  $('hero-meta').innerHTML = [
+    { icon: 'M', text: D.basic.target_position },
+    { icon: 'Y', text: D.basic.years + ' 年经验' },
+    { icon: 'E', text: D.basic.education },
+    { icon: 'C', text: D.basic.city }
+  ].map(m => `<div class="hero-meta-item">${m.icon} ${m.text}</div>`).join('');
+  $('hero-score').textContent = D.match.total_score;
+  $('hero-ring').style.borderColor = scoreColor(D.match.total_score);
+
+  // ---- K 知识柱状图（默认显示，立即初始化） ----
+  chartInitFns['K'] = function() {
+    const kd = D.iceberg.knowledge;
+    const colors = ['#2D5BFF','#3B82F6','#5B8DEF','#7AA8F5','#9BC2FA','#BBD7FC'];
+    const chart = echarts.init($('chart-knowledge'));
+    charts.push(chart);
+    chartMap['K'] = chart;
+    chart.setOption({
+      grid: { top: 40, bottom: 30, left: 40, right: 20 },
+      xAxis: {
+        type: 'category',
+        data: kd.dimensions.map(d => d.name),
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { fontSize: 13, fontWeight: 500, color: '#4E5969' }
+      },
+      yAxis: {
+        type: 'value', max: 10,
+        splitLine: { lineStyle: { type: 'dashed', color: '#F2F3F5' } },
+        axisLabel: { show: false }
+      },
+      series: [{
+        type: 'bar',
+        data: kd.dimensions.map((d, i) => ({
+          value: d.score,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: colors[i] },
+              { offset: 1, color: colors[i] + '66' }
+            ]),
+            borderRadius: [6, 6, 0, 0]
+          }
+        })),
+        barWidth: 32,
+        label: { show: true, position: 'top', fontSize: 14, fontWeight: 700, color: '#1D2129' }
+      }]
+    });
+    $('knowledge-summary').textContent = kd.summary;
+  };
+  chartInitFns['K'](); chartInited['K'] = true;  // K 默认可见，立即初始化
+
+  // ---- S 技能雷达图（延迟初始化） ----
+  chartInitFns['S'] = function() {
+    const sk = D.iceberg.skills.skills;
+    const chart = echarts.init($('chart-skills'));
+    charts.push(chart);
+    chartMap['S'] = chart;
+    chart.setOption({
+      radar: {
+        shape: 'polygon',
+        radius: '60%',
+        center: ['50%', '50%'],
+        axisName: {
+          fontSize: 13, color: '#4E5969',
+          formatter: function(name) {
+            const item = sk.find(s => s.name === name);
+            return item ? `${name}\n{score|${item.candidate_score}}` : name;
+          },
+          rich: { score: { fontSize: 14, fontWeight: 700, color: '#2D5BFF', padding: [4,0,0,0] } }
+        },
+        splitArea: { areaStyle: { color: ['#fff','#FAFBFC'] } },
+        splitLine: { lineStyle: { color: '#F2F3F5' } },
+        indicator: sk.map(s => ({ name: s.name, max: 10 }))
+      },
+      legend: {
+        bottom: 10,
+        data: [
+          { name: '候选人', icon: 'line', textStyle: { fontSize: 12 } },
+          { name: '岗位标准', icon: 'line', textStyle: { fontSize: 12 } }
+        ]
+      },
+      series: [{
+        type: 'radar',
+        data: [
+          {
+            name: '候选人',
+            value: sk.map(s => s.candidate_score),
+            lineStyle: { color: '#2D5BFF', width: 2 },
+            areaStyle: { color: 'rgba(45,91,255,0.12)' },
+            itemStyle: { color: '#2D5BFF' }
+          },
+          {
+            name: '岗位标准',
+            value: sk.map(s => s.standard_score),
+            lineStyle: { color: '#FA8C16', width: 2, type: 'dashed' },
+            areaStyle: { color: 'rgba(250,140,22,0.06)' },
+            itemStyle: { color: '#FA8C16' }
+          }
+        ]
+      }]
+    });
+  };
+
+  // ---- R 霍兰德（文本内容立即填充，图表延迟初始化） ----
+  (function() {
+    const sr = D.iceberg.social_role;
+    $('holland-code').textContent = sr.code;
+    $('hex-1').textContent = sr.code[0];
+    $('hex-2').textContent = sr.code[1];
+    $('hex-3').textContent = sr.code[2];
+    $('holland-desc').textContent = `主导类型：${sr.dominant_type} — ${sr.dominant_desc}`;
+  })();
+  chartInitFns['R'] = function() {
+    const sr = D.iceberg.social_role;
+    const labels = { R:'现实型', I:'研究型', A:'艺术型', S:'社会型', E:'企业型', C:'常规型' };
+    const chart = echarts.init($('chart-holland'));
+    charts.push(chart);
+    chartMap['R'] = chart;
+    chart.setOption({
+      radar: {
+        shape: 'polygon',
+        radius: '65%',
+        center: ['50%', '50%'],
+        axisName: {
+          fontSize: 13, fontWeight: 600, color: '#4E5969',
+          formatter: function(name) { return `${name}\n${labels[name]}`; }
+        },
+        splitArea: { areaStyle: { color: ['#fff','#FAFBFC'] } },
+        indicator: Object.keys(labels).map(k => ({ name: k, max: 100 }))
+      },
+      series: [{
+        type: 'radar',
+        data: [{
+          value: Object.keys(labels).map(k => sr.holland[k]),
+          lineStyle: { color: '#7C4DFF', width: 2 },
+          areaStyle: { color: 'rgba(124,77,255,0.15)' },
+          itemStyle: { color: '#7C4DFF' }
+        }]
+      }]
+    });
+  };
+
+  // ---- C 自我概念（纯文本，无图表，立即填充） ----
+  (function() {
+    const sc = D.iceberg.self_concept;
+    $('concept-badge').textContent = sc.tags[0] || '?';
+    $('concept-role').textContent = sc.role;
+    $('concept-title').textContent = sc.title;
+    $('concept-tags').innerHTML = sc.tags.map((t, i) =>
+      `<span class="concept-tag ${i === 0 ? 'active' : 'inactive'}">${t}</span>`
+    ).join('');
+    $('concept-evals').innerHTML = sc.evaluations.map((e, i) => `
+      <div class="eval-pair">
+        <div class="cognition"><span class="pair-num">${i+1}</span>${e.cognition}</div>
+        <div class="evidence">${e.evidence}</div>
+      </div>
+    `).join('');
+  })();
+
+  // ---- T 性格（文本立即填充，DISC 图表延迟初始化） ----
+  (function() {
+    const p = D.iceberg.personality;
+    $('mbti-type').textContent = p.mbti.type;
+    $('mbti-desc').textContent = p.mbti.interpretation;
+    const dims = [
+      { l: 'E', r: 'I', lv: p.mbti.E, rv: p.mbti.I, color: '#A78BFA' },
+      { l: 'S', r: 'N', lv: p.mbti.S, rv: p.mbti.N, color: '#60A5FA' },
+      { l: 'T', r: 'F', lv: p.mbti.T, rv: p.mbti.F, color: '#F59E0B' },
+      { l: 'J', r: 'P', lv: p.mbti.J, rv: p.mbti.P, color: '#34D399' }
+    ];
+    $('mbti-bars').innerHTML = dims.map(d => `
+      <div class="bar-bidirectional">
+        <span class="label-left" style="color:${d.color}">${d.l}</span>
+        <div class="track">
+          <div class="fill-left" style="width:${d.lv}%;background:${d.color};"></div>
+          <div class="fill-right" style="width:${d.rv}%;background:${d.color}40;"></div>
+        </div>
+        <span class="label-right" style="color:${d.color}80">${d.r}</span>
+        <span class="pct">${d.lv}%</span>
+        <span class="pct" style="text-align:right">${d.rv}%</span>
+      </div>
+    `).join('');
+    $('disc-type').textContent = p.disc.dominant;
+    $('disc-label').textContent = p.disc.dominant_label;
+    $('disc-traits').textContent = p.disc.traits;
+    $('disc-jobs').innerHTML = p.disc.suitable_jobs.map(j => `<span class="tag tag-gray">${j}</span>`).join('');
+  })();
+  chartInitFns['T'] = function() {
+    const p = D.iceberg.personality;
+    const discColors = ['#F87171','#F59E0B','#34D399','#60A5FA'];
+    const discChart = echarts.init($('chart-disc'));
+    charts.push(discChart);
+    chartMap['T'] = discChart;
+    discChart.setOption({
+      grid: { top: 30, bottom: 20, left: 40, right: 20 },
+      xAxis: {
+        type: 'category',
+        data: ['D','I','S','C'],
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { fontSize: 14, fontWeight: 700, color: (v, i) => discColors[i] }
+      },
+      yAxis: { type: 'value', max: 100, show: false },
+      series: [{
+        type: 'line',
+        data: [p.disc.D, p.disc.I, p.disc.S, p.disc.C].map((v, i) => ({
+          value: v,
+          itemStyle: { color: discColors[i] },
+          symbolSize: 12
+        })),
+        lineStyle: { color: '#2D5BFF', width: 3 },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(45,91,255,0.2)' },
+            { offset: 1, color: 'rgba(45,91,255,0.02)' }
+          ])
+        },
+        label: { show: true, position: 'top', fontSize: 13, fontWeight: 700, color: '#1D2129' }
+      }]
+    });
+  };
+
+  // ---- M 动机雷达（延迟初始化） ----
+  chartInitFns['M'] = function() {
+    const mo = D.iceberg.motivation.motivations;
+    const chart = echarts.init($('chart-motivation'));
+    charts.push(chart);
+    chartMap['M'] = chart;
+    chart.setOption({
+      radar: {
+        shape: 'polygon',
+        radius: '60%',
+        center: ['50%', '50%'],
+        axisName: { fontSize: 13, color: '#4E5969' },
+        splitArea: { areaStyle: { color: ['#fff','#FAFBFC'] } },
+        indicator: mo.map(m => ({ name: m.name, max: 10 }))
+      },
+      series: [{
+        type: 'radar',
+        data: [{
+          value: mo.map(m => m.score),
+          lineStyle: { color: '#FFA726', width: 2 },
+          areaStyle: { color: 'rgba(255,167,38,0.15)' },
+          itemStyle: { color: '#FFA726' }
+        }]
+      }]
+    });
+  };
+
+  // ---- 匹配度评估 ----
+  (function() {
+    const m = D.match;
+    const dims = [
+      { label: '技能匹配', score: m.skill_score, weight: '35%' },
+      { label: '经验匹配', score: m.experience_score, weight: '25%' },
+      { label: '薪资匹配', score: m.salary_score, weight: '15%' },
+      { label: '发展匹配', score: m.career_fit_score, weight: '25%' }
+    ];
+    $('match-bars').innerHTML = dims.map(d => `
+      <div class="match-bar">
+        <div class="bar-header">
+          <span>${d.label} <span style="color:var(--text-muted);font-size:12px;">(权重${d.weight})</span></span>
+          <span style="font-weight:700;color:${scoreColor(d.score)}">${d.score}/100</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${d.score}%;background:${scoreColor(d.score)};"></div>
+        </div>
+      </div>
+    `).join('');
+    $('match-reason').textContent = m.reason;
+    $('total-score').textContent = m.total_score;
+    if (m.missing_skills.length) {
+      $('match-missing').innerHTML = `<div style="margin-bottom:8px;font-size:13px;font-weight:600;">缺失技能</div>` +
+        m.missing_skills.map(s => `<span class="tag tag-red">${s}</span>`).join('');
+    }
+
+    // 仪表盘
+    const gauge = echarts.init($('chart-gauge'));
+    charts.push(gauge);
+    gauge.setOption({
+      series: [{
+        type: 'gauge',
+        radius: '90%',
+        startAngle: 210,
+        endAngle: -30,
+        min: 0, max: 100,
+        axisLine: {
+          lineStyle: {
+            width: 20,
+            color: [
+              [0.3, '#E74C3C'],
+              [0.6, '#FAAD14'],
+              [0.8, '#52C41A'],
+              [1, '#00A870']
+            ]
+          }
+        },
+        pointer: { show: false },
+        axisTick: { show: false },
+        splitLine: { show: false },
+        axisLabel: { show: false },
+        detail: { show: false },
+        data: [{ value: m.total_score }]
+      }]
+    });
+  })();
+
+  // ---- 面试题 ----
+  (function() {
+    const qs = D.interview.questions;
+    $('interview-section').innerHTML = qs.map((q, i) => `
+      <div class="question-card">
+        <div class="q-header">
+          <div class="q-num">${i+1}</div>
+          <span class="q-diff ${q.difficulty}">${q.difficulty}</span>
+          <span class="tag tag-blue" style="margin:0;">${q.category}</span>
+        </div>
+        <div class="q-text">${q.question}</div>
+        <div class="q-focus">考察重点：${q.focus}</div>
+        <div class="q-points">
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">参考要点：</div>
+          <ul>
+            ${q.suggested_answer_points.map(p => `<li>${p}</li>`).join('')}
+          </ul>
+        </div>
+      </div>
+    `).join('');
+  })();
+
+  // ---- 职业建议 ----
+  (function() {
+    const a = D.advice;
+    $('strengths-list').innerHTML = a.strengths.map(s => `<li>${s}</li>`).join('');
+    $('improve-list').innerHTML = a.improvements.map(s => `<li>${s}</li>`).join('');
+    $('roadmap').innerHTML = a.roadmap.map(r => {
+      const bg = r.priority === '高' ? '#FFF0F0' : '#FFF7E6';
+      const color = r.priority === '高' ? '#E74C3C' : '#FA8C16';
+      return `
+        <div class="timeline-item">
+          <span class="time-tag" style="background:${bg};color:${color};">${r.period}</span>
+          <span class="tag ${r.priority === '高' ? 'tag-red' : 'tag-orange'}" style="font-size:11px;">${r.priority}优先</span>
+          <div style="font-size:14px;color:var(--text-secondary);margin-top:4px;">${r.action}</div>
+        </div>
+      `;
+    }).join('');
+  })();
+
+  // ---- 响应式 ----
+  window.addEventListener('resize', () => {
+    Object.values(chartMap).forEach(c => c && c.resize());
+  });
+
+})();
+</script>
+</body>
+</html>
