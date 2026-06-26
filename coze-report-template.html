@@ -76,53 +76,126 @@ body {
 
 /* ---- Hero 区域 ---- */
 .hero {
-  background: linear-gradient(135deg, #042852 0%, #0A65CC 100%);
+  background: linear-gradient(135deg, #042852 0%, #0A65CC 50%, #1E5FD8 100%);
+  background-size: 200% 200%;
+  animation: heroGradient 10s ease infinite;
   border-radius: var(--radius);
-  padding: 48px;
+  padding: 56px 64px;
   margin-bottom: 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   color: #fff;
-  box-shadow: 0 8px 32px rgba(4,40,82,0.2);
+  box-shadow: 0 16px 48px rgba(4,40,82,0.28);
   position: relative;
   overflow: hidden;
 }
+@keyframes heroGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.hero::before,
 .hero::after {
   content: '';
   position: absolute;
-  right: -60px;
-  top: -60px;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
   border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.28;
+  pointer-events: none;
 }
-.hero-info { flex: 1; }
-.hero-name { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
-.hero-meta { display: flex; gap: 24px; font-size: 14px; opacity: 0.85; }
-.hero-meta-item { display: flex; align-items: center; gap: 6px; }
+.hero::before {
+  width: 420px;
+  height: 420px;
+  background: #4FACFE;
+  top: -120px;
+  right: -80px;
+}
+.hero::after {
+  width: 320px;
+  height: 320px;
+  background: #00C6FB;
+  bottom: -100px;
+  left: -60px;
+}
+.hero-info { flex: 1; position: relative; z-index: 1; }
+.hero-label {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.12);
+  padding: 6px 14px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.hero-name { font-size: 38px; font-weight: 800; margin-bottom: 18px; letter-spacing: -0.5px; }
+.hero-meta { display: flex; gap: 14px; font-size: 14px; flex-wrap: wrap; }
+.hero-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.12);
+  padding: 9px 16px;
+  border-radius: 24px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.15);
+  transition: background 0.3s;
+}
+.hero-meta-item:hover { background: rgba(255,255,255,0.2); }
+.hero-meta-item svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.9;
+}
 .hero-score-ring {
-  width: 140px;
-  height: 140px;
+  width: 170px;
+  height: 170px;
   border-radius: 50%;
-  border: 5px solid rgba(255,255,255,0.3);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   z-index: 1;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+.hero-score-ring svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+.score-circle-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.15);
+  stroke-width: 10;
+}
+.score-circle {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.3));
 }
 .hero-score-ring .score-value {
-  font-size: 48px;
+  font-size: 46px;
   font-weight: 800;
   line-height: 1;
 }
 .hero-score-ring .score-label {
-  font-size: 13px;
-  opacity: 0.7;
-  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 6px;
+  font-weight: 500;
+  letter-spacing: 1px;
 }
 
 /* ---- 区块标题 ---- */
@@ -181,7 +254,7 @@ body {
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   position: relative;
   overflow: hidden;
-  aspect-ratio: 580/560;
+  aspect-ratio: 1/1;
 }
 .iceberg-nav img {
   position: absolute;
@@ -189,23 +262,35 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 .iceberg-pin {
   position: absolute;
   display: flex;
   align-items: center;
-  gap: 6px;
-  cursor: default;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: transform 0.2s ease;
   z-index: 2;
 }
+.iceberg-pin:hover { transform: translate(-50%, -50%) scale(1.03); }
 .iceberg-pin .dot {
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.6);
+  flex-shrink: 0;
+  z-index: 2;
 }
 .iceberg-pin .line {
-  width: 60px; height: 0;
-  border-top: 1px dashed rgba(255,255,255,0.4);
+  width: 78px;
+  height: 0;
+  border-top: 1px dashed rgba(255,255,255,0.7);
+  margin: 0 4px;
+  flex-shrink: 0;
 }
 .iceberg-pin .ring {
   width: 30px; height: 30px;
@@ -214,20 +299,30 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
   color: #1565C0;
+  border: 2px solid rgba(255,255,255,0.8);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  flex-shrink: 0;
 }
 .iceberg-pin .label {
+  margin-left: 8px;
   font-size: 13px;
+  font-weight: 600;
   color: #fff;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
   white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.iceberg-pin.active .dot {
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.35);
 }
 .iceberg-pin.active .ring {
   background: #2196F3;
   color: #fff;
-  box-shadow: 0 0 0 4px rgba(255,255,255,0.35);
+  border-color: #fff;
+  box-shadow: 0 0 0 4px rgba(33,150,243,0.25);
 }
 .iceberg-pin.active .label { font-weight: 700; }
 
@@ -281,24 +376,120 @@ body {
 
 /* ---- 匹配维度条 ---- */
 .match-bar {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 .match-bar .bar-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 14px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+}
+.match-bar .bar-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.match-bar .bar-weight {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  background: #F2F3F5;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.match-bar .bar-score {
+  font-weight: 800;
+  font-size: 15px;
 }
 .match-bar .bar-track {
-  height: 8px;
+  height: 10px;
   background: #F2F3F5;
-  border-radius: 4px;
+  border-radius: 5px;
   overflow: hidden;
+  position: relative;
 }
 .match-bar .bar-fill {
   height: 100%;
-  border-radius: 4px;
-  transition: width 0.8s ease;
+  border-radius: 5px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, var(--fill-color) 0%, var(--fill-color-light) 100%);
+  box-shadow: 0 2px 8px var(--fill-shadow);
+  position: relative;
+}
+.match-bar .bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35));
+  border-radius: 0 5px 5px 0;
+}
+
+/* ---- 匹配评估雷达图 ---- */
+.match-radar-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 360px;
+}
+.match-radar-wrap {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+.match-radar-wrap .chart-box-sm {
+  height: 100%;
+}
+.match-total-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+.match-total-score {
+  font-size: 44px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.match-total-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+.match-radar-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.match-radar-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.match-radar-legend span::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
 }
 
 /* ---- 面试题卡片 ---- */
@@ -465,8 +656,6 @@ body {
   .hero { flex-direction: column; gap: 24px; padding: 32px; text-align: center; }
   .hero-meta { justify-content: center; flex-wrap: wrap; }
   .grid-2, .grid-3, .grid-2-1 { grid-template-columns: 1fr; }
-  .iceberg-layout { flex-direction: column; }
-  .iceberg-nav { max-width: 100%; }
 }
 
 /* ---- 冰山区域左右布局 ---- */
@@ -476,7 +665,7 @@ body {
   align-items: flex-start;
 }
 .iceberg-left {
-  width: 400px;
+  width: 520px;
   flex-shrink: 0;
   position: sticky;
   top: 80px;
@@ -484,6 +673,15 @@ body {
 .iceberg-right {
   flex: 1;
   min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .iceberg-left {
+    position: relative;
+    top: auto;
+    width: 100%;
+  }
+  .iceberg-layout { flex-direction: column; }
 }
 
 /* ---- 自我认知标签 ---- */
@@ -524,17 +722,6 @@ body {
 .iceberg-right > .card { display: none; }
 .iceberg-right > .card.active { display: block; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-.iceberg-pin { cursor: pointer; transition: all 0.2s; }
-.iceberg-pin:hover .ring { box-shadow: 0 0 0 3px rgba(33,150,243,0.3); }
-.iceberg-pin .ring { transition: all 0.2s; }
-.iceberg-pin.active .ring {
-  background: #2196F3 !important;
-  color: #fff !important;
-  box-shadow: 0 0 0 4px rgba(255,255,255,0.35);
-}
-.iceberg-pin.active .dot { background: #fff; }
-.iceberg-pin.active .label { font-weight: 700; }
 
 /* ---- 模块导航条（冰山下方） ---- */
 .module-tabs {
@@ -594,10 +781,16 @@ body {
      ============================================================ -->
 <div class="hero" id="hero-section">
   <div class="hero-info">
+    <div class="hero-label">Candidate Profile</div>
     <div class="hero-name" id="hero-name">--</div>
     <div class="hero-meta" id="hero-meta"></div>
   </div>
   <div class="hero-score-ring" id="hero-ring">
+    <svg viewBox="0 0 170 170">
+      <circle class="score-circle-bg" cx="85" cy="85" r="75"/>
+      <circle class="score-circle" id="score-circle" cx="85" cy="85" r="75"
+              stroke-dasharray="471.24" stroke-dashoffset="471.24"/>
+    </svg>
     <div class="score-value" id="hero-score">--</div>
     <div class="score-label">综合匹配分</div>
   </div>
@@ -618,43 +811,15 @@ body {
   <!-- 左侧冰山导航图 -->
   <div class="iceberg-left">
     <div class="iceberg-nav">
-      <!-- 冰山 SVG 替代 PNG（自包含，无需外部图片） -->
-      <svg viewBox="0 0 580 560" style="position:absolute;inset:0;width:100%;height:100%;">
-        <defs>
-          <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#DBEAFE"/>
-            <stop offset="100%" stop-color="#BFDBFE"/>
-          </linearGradient>
-          <linearGradient id="ice-top" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#E0EEFF"/>
-            <stop offset="100%" stop-color="#93B8F7"/>
-          </linearGradient>
-          <linearGradient id="ice-bottom" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#7BA3E0"/>
-            <stop offset="100%" stop-color="#3B6CB5"/>
-          </linearGradient>
-        </defs>
-        <!-- 水面 -->
-        <rect x="0" y="0" width="580" height="560" fill="url(#water)" opacity="0.15"/>
-        <line x1="0" y1="200" x2="580" y2="200" stroke="#60A5FA" stroke-width="1.5" opacity="0.4"/>
-        <!-- 水面上的冰山 -->
-        <polygon points="290,40 380,200 200,200" fill="url(#ice-top)" opacity="0.9"/>
-        <!-- 水面下的冰山 -->
-        <polygon points="200,200 380,200 420,340 370,460 290,500 210,460 160,340" fill="url(#ice-bottom)" opacity="0.7"/>
-        <!-- 水波纹 -->
-        <path d="M0,200 Q50,195 100,200 T200,200 T300,200 T400,200 T500,200 T580,200"
-              fill="none" stroke="#60A5FA" stroke-width="1" opacity="0.3"/>
-        <!-- 模块标注文字 -->
-        <text x="290" y="100" text-anchor="middle" fill="#fff" font-size="18" font-weight="800" opacity="0.9">冰山模型</text>
-        <text x="290" y="125" text-anchor="middle" fill="#fff" font-size="11" opacity="0.6">ICEBERG MODEL</text>
-      </svg>
-      <!-- 导航钉（定位在 SVG 冰山上） -->
-      <div class="iceberg-pin active" data-key="K" onclick="switchModule('K')" style="left:52%;top:18%"><span class="dot"></span><span class="line"></span><span class="ring">K</span><span class="label">知识</span></div>
-      <div class="iceberg-pin" data-key="S" onclick="switchModule('S')" style="left:55%;top:28%"><span class="dot"></span><span class="line"></span><span class="ring">S</span><span class="label">技能</span></div>
-      <div class="iceberg-pin" data-key="R" onclick="switchModule('R')" style="left:58%;top:44%"><span class="dot"></span><span class="line"></span><span class="ring">R</span><span class="label">社会角色</span></div>
-      <div class="iceberg-pin" data-key="C" onclick="switchModule('C')" style="left:58%;top:56%"><span class="dot"></span><span class="line"></span><span class="ring">C</span><span class="label">自我概念</span></div>
-      <div class="iceberg-pin" data-key="T" onclick="switchModule('T')" style="left:55%;top:68%"><span class="dot"></span><span class="line"></span><span class="ring">T</span><span class="label">特质性格</span></div>
-      <div class="iceberg-pin" data-key="M" onclick="switchModule('M')" style="left:52%;top:80%"><span class="dot"></span><span class="line"></span><span class="ring">M</span><span class="label">动机</span></div>
+      <!-- 冰山模型背景图：与 AI-Hiring Candidate 前端同源的真实 iceberg 视觉 -->
+      <img src="./iceberg.png" alt="冰山模型" />
+      <!-- 模块导航钉：位置按 iceberg.png 视觉比例定位 -->
+      <div class="iceberg-pin active" data-key="K" onclick="switchModule('K')" style="left:65%;top:22%"><span class="dot"></span><span class="line"></span><span class="ring">K</span><span class="label">知识</span></div>
+      <div class="iceberg-pin" data-key="S" onclick="switchModule('S')" style="left:65%;top:34%"><span class="dot"></span><span class="line"></span><span class="ring">S</span><span class="label">技能</span></div>
+      <div class="iceberg-pin" data-key="R" onclick="switchModule('R')" style="left:66%;top:46%"><span class="dot"></span><span class="line"></span><span class="ring">R</span><span class="label">社会角色</span></div>
+      <div class="iceberg-pin" data-key="C" onclick="switchModule('C')" style="left:68%;top:58%"><span class="dot"></span><span class="line"></span><span class="ring">C</span><span class="label">自我概念</span></div>
+      <div class="iceberg-pin" data-key="T" onclick="switchModule('T')" style="left:67%;top:70%"><span class="dot"></span><span class="line"></span><span class="ring">T</span><span class="label">特质性格</span></div>
+      <div class="iceberg-pin" data-key="M" onclick="switchModule('M')" style="left:64%;top:86%"><span class="dot"></span><span class="line"></span><span class="ring">M</span><span class="label">动机</span></div>
     </div>
     <!-- 模块切换标签条 -->
     <div class="module-tabs">
@@ -786,11 +951,16 @@ body {
     <div class="summary-block" id="match-reason" style="margin-top:20px;"></div>
     <div style="margin-top:16px;" id="match-missing"></div>
   </div>
-  <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
-    <div class="chart-box-sm" id="chart-gauge" style="height:220px;"></div>
-    <div style="text-align:center;margin-top:8px;">
-      <div style="font-size:13px;color:var(--text-muted);">综合匹配分</div>
-      <div style="font-size:36px;font-weight:800;color:var(--primary);" id="total-score">--</div>
+  <div class="card match-radar-card">
+    <div class="match-radar-wrap">
+      <div class="chart-box-sm" id="chart-radar"></div>
+      <div class="match-total-overlay">
+        <div class="match-total-score" id="total-score">--</div>
+        <div class="match-total-label">综合匹配分</div>
+      </div>
+    </div>
+    <div class="match-radar-legend">
+      <span>候选人匹配度</span>
     </div>
   </div>
 </div>
@@ -1086,15 +1256,40 @@ function switchModule(key) {
   $('report-time').textContent = new Date().toLocaleString('zh-CN');
 
   // ---- Hero ----
+  const icons = {
+    position: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+    </svg>`,
+    years: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <polyline points="12 6 12 12 16 14"></polyline>
+    </svg>`,
+    edu: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+      <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+    </svg>`,
+    city: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+      <circle cx="12" cy="10" r="3"></circle>
+    </svg>`
+  };
   $('hero-name').textContent = D.basic.name;
   $('hero-meta').innerHTML = [
-    { icon: 'M', text: D.basic.target_position },
-    { icon: 'Y', text: D.basic.years + ' 年经验' },
-    { icon: 'E', text: D.basic.education },
-    { icon: 'C', text: D.basic.city }
-  ].map(m => `<div class="hero-meta-item">${m.icon} ${m.text}</div>`).join('');
-  $('hero-score').textContent = D.match.total_score;
-  $('hero-ring').style.borderColor = scoreColor(D.match.total_score);
+    { icon: icons.position, text: D.basic.target_position },
+    { icon: icons.years, text: D.basic.years + ' 年经验' },
+    { icon: icons.edu, text: D.basic.education },
+    { icon: icons.city, text: D.basic.city }
+  ].map(m => `<div class="hero-meta-item">${m.icon}<span>${m.text}</span></div>`).join('');
+
+  const totalScore = D.match.total_score;
+  $('hero-score').textContent = totalScore;
+  const circle = $('score-circle');
+  const radius = 75;
+  const circumference = 2 * Math.PI * radius; // 471.24
+  const offset = circumference - (totalScore / 100) * circumference;
+  circle.style.strokeDashoffset = offset;
+  circle.style.stroke = totalScore >= 80 ? '#4ADE80' : totalScore >= 60 ? '#FACC15' : '#F87171';
 
   // ---- K 知识柱状图（默认显示，立即初始化） ----
   chartInitFns['K'] = function() {
@@ -1344,51 +1539,88 @@ function switchModule(key) {
       { label: '薪资匹配', score: m.salary_score, weight: '15%' },
       { label: '发展匹配', score: m.career_fit_score, weight: '25%' }
     ];
-    $('match-bars').innerHTML = dims.map(d => `
+
+    const colorMap = {
+      high: { main: '#00A870', light: '#34D399', shadow: 'rgba(0,168,112,0.25)' },
+      mid: { main: '#FAAD14', light: '#FACC15', shadow: 'rgba(250,173,20,0.25)' },
+      low: { main: '#E74C3C', light: '#F87171', shadow: 'rgba(231,76,60,0.25)' }
+    };
+
+    $('match-bars').innerHTML = dims.map(d => {
+      const c = d.score >= 80 ? colorMap.high : d.score >= 60 ? colorMap.mid : colorMap.low;
+      return `
       <div class="match-bar">
         <div class="bar-header">
-          <span>${d.label} <span style="color:var(--text-muted);font-size:12px;">(权重${d.weight})</span></span>
-          <span style="font-weight:700;color:${scoreColor(d.score)}">${d.score}/100</span>
+          <span class="bar-label">${d.label} <span class="bar-weight">权重 ${d.weight}</span></span>
+          <span class="bar-score" style="color:${c.main}">${d.score}</span>
         </div>
         <div class="bar-track">
-          <div class="bar-fill" style="width:${d.score}%;background:${scoreColor(d.score)};"></div>
+          <div class="bar-fill" style="--fill-color:${c.main};--fill-color-light:${c.light};--fill-shadow:${c.shadow};width:${d.score}%;"></div>
         </div>
       </div>
-    `).join('');
+    `}).join('');
     $('match-reason').textContent = m.reason;
     $('total-score').textContent = m.total_score;
     if (m.missing_skills.length) {
-      $('match-missing').innerHTML = `<div style="margin-bottom:8px;font-size:13px;font-weight:600;">缺失技能</div>` +
+      $('match-missing').innerHTML = `<div style="margin-bottom:8px;font-size:13px;font-weight:600;color:var(--text-primary);">缺失技能</div>` +
         m.missing_skills.map(s => `<span class="tag tag-red">${s}</span>`).join('');
     }
 
-    // 仪表盘
-    const gauge = echarts.init($('chart-gauge'));
-    charts.push(gauge);
-    gauge.setOption({
-      series: [{
-        type: 'gauge',
-        radius: '90%',
-        startAngle: 210,
-        endAngle: -30,
-        min: 0, max: 100,
-        axisLine: {
-          lineStyle: {
-            width: 20,
-            color: [
-              [0.3, '#E74C3C'],
-              [0.6, '#FAAD14'],
-              [0.8, '#52C41A'],
-              [1, '#00A870']
-            ]
+    // 匹配雷达图
+    const radar = echarts.init($('chart-radar'));
+    charts.push(radar);
+    chartMap['match'] = radar;
+    radar.setOption({
+      radar: {
+        shape: 'circle',
+        radius: '62%',
+        center: ['50%', '50%'],
+        axisName: {
+          color: '#4E5969',
+          fontSize: 12,
+          fontWeight: 600,
+          formatter: function(name) {
+            const item = dims.find(d => d.label === name);
+            return `${name}\n{item|${item.score}}`;
+          },
+          rich: {
+            item: {
+              color: '#2D5BFF',
+              fontSize: 13,
+              fontWeight: 800,
+              padding: [4, 0, 0, 0]
+            }
           }
         },
-        pointer: { show: false },
-        axisTick: { show: false },
-        splitLine: { show: false },
-        axisLabel: { show: false },
-        detail: { show: false },
-        data: [{ value: m.total_score }]
+        splitArea: {
+          areaStyle: {
+            color: ['rgba(45,91,255,0.02)', 'rgba(45,91,255,0.04)', 'rgba(45,91,255,0.06)', 'rgba(45,91,255,0.08)']
+          }
+        },
+        axisLine: { lineStyle: { color: 'rgba(45,91,255,0.12)' } },
+        splitLine: { lineStyle: { color: 'rgba(45,91,255,0.12)' } },
+        indicator: dims.map(d => ({ name: d.label, max: 100 }))
+      },
+      series: [{
+        type: 'radar',
+        data: [{
+          value: dims.map(d => d.score),
+          name: '匹配度',
+          lineStyle: { color: '#2D5BFF', width: 2.5 },
+          areaStyle: {
+            color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
+              { offset: 0, color: 'rgba(45,91,255,0.35)' },
+              { offset: 1, color: 'rgba(45,91,255,0.06)' }
+            ])
+          },
+          itemStyle: {
+            color: '#2D5BFF',
+            borderColor: '#fff',
+            borderWidth: 2
+          },
+          symbol: 'circle',
+          symbolSize: 8
+        }]
       }]
     });
   })();
